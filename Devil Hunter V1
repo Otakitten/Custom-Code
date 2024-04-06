@@ -1,0 +1,507 @@
+var iFileName = "Devil Hunter.js";
+RequiredSheetVersion("13.0.6");
+
+SourceList["HB"] = {
+	name : "Devil Hunter",
+	abbreviation : "HB",
+	group : "GM Binder",
+	url : "https://www.gmbinder.com/share/-Mv6b6XndlLDQKOy4D1I",
+	date : "2022/07/17"
+};
+
+var DistortionDie = function(n) {
+	return "1d" + (n < 5 ? 4 : n < 11 ? 6 : n < 17 ? 8 : 10);
+};
+
+ClassList["devil hunter"] = {
+	regExpSearch : /^(?=.*devil)(?=.*hunter).*$/i,
+	name : "Devil Hunter",
+	source : ["HB", 0],
+	primaryAbility : " Charisma, and Strength or Dexterity",
+	prereqs : "\n \u2022 Devil Hunter:Strength 13 or Dexterity 13, and Charisma 13",
+	die : 10,
+	improvements :  levels.map( function(n) {
+		return n < 4 ? 0 : n < 8 ? 1 : n < 12 ? 2 : n < 16 ? 3 : n < 19 ? 4 : 5;
+	}),
+	saves : ["Con", "Cha"],
+    toolProfs : {
+		primary : [["Musical instrument", 1]]
+	},
+	skillstxt : {
+		primary : "Choose two from Athletics, Insight, Intimidation, Investigation, Perception, Performance, Survival"
+	},
+	armorProfs : {
+		primary : [true, false, false, false]
+	},
+	weaponProfs : {
+		primary : [true, false, ["hand crossbow", "longsword", "rapier", "scimitar", "shortsword"]],
+		secondary : [true, false, ["shortsword"]]
+	},
+    equipment : "Devil Hunter starting equipment:" +
+    "\n \u2022 A longsword -or- a shortsword;" +
+    "\n \u2022 A light crossbow and 20 bolts -or- a shortsword;" +
+    "\n \u2022 A dungeoneer's pack -or- an explorer's pack;" +
+    "\n \u2022 Two hand crossbows and 40 bolts." +
+    "\n\nAlternatively, choose 4d4 x 10 gp worth of starting equipment instead of both the class' and the background's starting equipment.",
+    subclasses : ["Devil Hunter Archtypes", []],
+    attacks : [1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+	abilitySave : 6,
+	features : {
+		"unarmored defense" : {
+            name : "Unarmored Defense",
+            source : ["HB", 0],
+            minlevel : 1,
+            description : desc(["Without armor and no shield, my AC is 10 + Dexterity modifier + Charisma modifier"]),
+            armorOptions : [{
+                regExpSearch : /justToAddToDropDown/,
+                name : "Unarmored Defense (Cha)",
+                source : ["HB", 0],
+                ac : "10+Cha",
+                affectsWildShape : true
+            }],
+            armorAdd : "Unarmored Defense (Cha)"
+        },
+        "devil sense" : {
+            name : "Devil Sense",
+            source : ["HB", 0],
+            minlevel : 1,
+            description : desc([
+                "As an action, I sense celestials/fiends/aberrations within 60 ft",
+                "Until the end of my next turn, I sense the type/location if it is not behind total cover"
+            ]),
+            usages : "1 + Charisma modifier per ",
+            usagescalc : "event.value = 1 + What('Cha Mod');",
+            recovery : "long rest",
+            action : ["action", ""]
+        },
+		"fighting style" : {
+			name : "Fighting Style",
+			source : [["HB", 0]],
+			minlevel : 2,
+			description : '\n   Choose a Fighting Style using the "Choose Feature" button above',
+			choices : ["Archery", "Dueling", "Great Weapon Fighting", "Two-Weapon Fighting"],
+			"archery" : FightingStyles.archery,
+			"dueling" : FightingStyles.dueling,
+			"great weapon fighting" : FightingStyles.great_weapon,
+			"two-weapon fighting" : FightingStyles.two_weapon
+		},
+        "distortion die" : {
+            name : "Distortion Die",
+            source : [["HB", 0]],
+            minlevel : 2,
+            description : "",
+            additional : levels.map(DistortionDie)
+        },
+		"style points" : {
+            name : "Style Points",
+            source : ["HB", 0],
+            minlevel : 2,
+            limfeaname : "Style Points",
+            usages : levels.map(function (n) { return n < 2 ? "" : n }),
+            recovery : "short rest",
+            "stinger" : {
+                name : "Stinger [1 style point]",
+                extraname : "Stylish Art",
+                description : "\n   I can move up to 30 ft in a straight line without provoking opportunity attacks, stopping at the first creature. I add extra 1 Distortion Die in necrotic damage. 10th level: I can make 1 extra attack as part of the attack action.",
+                action : ["bonus action", " (with attack action)"]
+            },
+            "charged shot" : {
+                name : "Charged Shot [1 style point]",
+                extraname : "Stylish Art",
+                description : "\n   When I take the attack action with a ranged weapon, or up to two weapons with the thrown propery, I can add the Distortion die to my attack rolls and ignore the loading property until the end of my turn. 10th level: All ranged weapon attacks deal an extra 1d4 damage.",
+                action : ["bonus action", " (with attack action)"]
+            },
+            autoSelectExtrachoices : [{
+                extrachoice : "stinger"
+            }, {
+                extrachoice : "charged shot"
+            }]
+        },
+		"subclassfeature3" : {
+			name : "Devil Hunter Archtype",
+			source : [["HB", 0]],
+			minlevel : 3,
+			description : desc([
+				'Choose a Devil Hunter Archtype you commit to and put it in the "Class" field',
+				"Choose either Dark Knight, Devil Bringer, or Dark Slayer"
+			])
+		},
+		"provocation" : {
+			name : "Provocation",
+			source : ["HB", 0],
+			minlevel : 3,
+			description : "\n   Any Performance check roll of 9 or lower is a 10. I learn the Vicious Mockery cantrip, which uses my Charisma. If a powerful enough creature fails the saving throw, I regain an expended style point. I can cast as Bonus Action limited times.",
+            additional : levels.map(function (n) {
+                return n < 3 ? "" : (n < 5 ? 2 : n < 9 ? 3 : n < 13 ? 4 : n < 17 ? 5 : 6) + " per long rest"
+            }),
+        },
+        "speed" : {
+            name : "Speed",
+            source : ["HB", 0],
+            minlevel : 5,
+            description : "\n   I gain +10 ft speed when I'm not wearing heavy armor",
+            speed : { allModes : "+10" }
+        },
+		"never surrender" : {
+			name : "Never Surrender",
+			source : ["HB", 0],
+			minlevel : 7,
+			description : "\n   I have adv. on death saving throws. If I'm unconcious but stable at the beginning of my turn, I roll a d20. On a 19 or 20, I regain 1 hit point"
+		},
+        "taste the blood" : {
+            name : "Taste the Blood",
+            source : ["HB", 0],
+            minlevel : 9,
+            description : "\n   My infernal blood makes me immune to poison and disease",
+            savetxt : { immune : ["poison", "disease"] } //both immune to poison damage and the poisoned condition (see sage advice)
+        },
+        "fiendish resilience" : {
+            name : "Fiendish Resilience",
+            source : ["HB", 0],
+            minlevel : 13,
+            description : "\n   I am proficient with either Dexterity or Wisdom saving throws (my choice)"
+        },
+        "timeless body" : {
+            name : "Timeless Body",
+            source : ["HB", 0],
+            minlevel : 15,
+            description : "\n   I don't require food or water; I don't suffer age penalties and can't be aged magically"
+        },
+        "devils never cry" : {
+            name : "Devils Never Cry",
+            source : ["HB", 0],
+            minlevel : 17,
+            description : "\n   If a Constitution saving throw is lower than my Constitution score, I can use that instead"
+        },
+		"trigger heart" : {
+			name : "Trigger Heart",
+			source : ["HB", 0],
+			minlevel : 20,
+			description : "\n   The duration of my Devil Trigger is doubled. When I roll for initiative and have no style points, I regain 4 style points"
+		},
+    }
+};
+
+AddSubClass("devil hunter","devil breaker", {
+	regExpSearch : /^(?=.*devil)(?=.*breaker).*$/i,
+	subname : "Devil Breaker",
+    source : ["HB", 0],
+    fullname : "Devil Breaker",
+	features : {
+        "subclassfeature3" : {
+			name : "Daredevil",
+			source : ["HB", 0],
+			minlevel : 3,
+			description : "\n   " + "I gain proficiency with the Acrobatics and Intimidation skills and I gain expertise with the Acrobatics and Intimidation skills",
+			skillstxt : "Acrobatics and Intimidation proficiency and expertise",
+			skills : [["Acrobatics", "full"], ["Intimidation", "full"]],
+		},
+        "subclassfeature3.1" : {
+            name : "Devil Bringer",
+            source : ["HB", 0],
+            minlevel : 3,
+            description : "\n   " + "One of my arms (my choice) becomes a Devil Bringer. This is a natural weapon that I am proficient with",
+			weaponOptions : [{
+				regExpSearch : /^(?=.*(devil))(?=.*bringer).*$/i,
+				name : "Devil Bringer",
+				source : [["HB", 0]],
+				ability : 6,
+				type : "Natural",
+				damage : [1, 4, "necrotic"],
+				range : "Melee",
+				description : "Reach; after hit, bonus action attempt to grapple or shove, using Cha instead of Str",
+				abilitytodamage : true,
+                bringerNaturalWeapon : true
+			}],
+            weaponsAdd : ["Devil Bringer"],
+        },
+        "subclassfeature6" : {
+            name : "Exceed",
+            source : ["HB", 0],
+            minlevel : 6,
+            description : "\n    " + "I can modify a non-two-handed melee weapon that I am proficient with over the course of 1 hour, which can be done during a short rest. See \"Notes\" page for more.",
+            toNotesPage : [{
+                name : "Exceed",
+                note : "\n   " + "This weapon counts as magical for the purpose of overcoming resistance and immunity to nonmagical attacks and damage. It ceases to be an Exceed weapon if I die, work on another weapon, or spend 1 hour to disable it." + "\n " + "When I hit a creature with a melee attack from my Exceed weapon, I can spend up to 3 style points to deal additional fire damage. The extra damage is 2d10 for 1 style point, plus 1d10 for each style point higher than 1. The damage increases by 1d10 if the target is an aberration or fiend" + "\n   " + "The number of style points I can spend increases to 4 at 11th level and 5 at 17th level",
+            }]
+        },
+        "subclassfeature11" : {
+            name : "Devil Trigger",
+            source : ["HB", 0],
+            minlevel : 11,
+            description : "\n   I can pull my Devil Trigger and transform for 5 minutes or I am reduced to 0 hp or die. See \"Notes\" page.",
+        "devil trigger" : {
+            name : "Devil Trigger",
+            source : ["HB", 0],
+            description : "\n   I gain a flying sleep equal to my walking speed. When I roll a Distortion die for damage, I rolls one additional and add it. I can use Showdown and Maximum Bet",
+            usages : 3,
+            recovery : "long rest",
+            action : ["bonus action"]
+        },
+        "showdown" : {
+            name : "Showdown",
+            extraname : "Stylish Art",
+            source : ["HB", 0],
+            description : "\n   [up to 5 style points] Once per Devil Trigger, I may use my action to make a number of attacks with my Exceed weapon. The number of attacks equals twice the amount of Style Points I spend. I do not add my ability modifier to the damage, unless it is negative",
+            action : ["action", " (Once per Devil Trigger)"]
+        },
+        "maximum bet" : {
+            name : "Maximum Bet",
+            extraname : "Stylish Art",
+            source : ["HB", 0],
+            description : "\n   While in Devil Trigger, I can replace one of my attacks with a ranged spell attack that has a range of 30 ft. This attack uses my Exceed weapon's attack and damage rolls, does necrotic damage, and does additional damage equal to my the Distortion Die"
+        },
+            autoSelectExtrachoices : [{
+                extrachoice : "devil trigger"
+                }, {
+                extrachoice : "showdown"
+            }, {
+                extrachoice : "maximum bet"
+            }],
+        },
+        "subclassfeature14" : {
+            name : "Snatch/Hell Bound",
+            source : ["HB", 0],
+            minlevel : 14,
+            description : "\n    " + "As an action, I can spend 1 Style Point to force a Large or smaller creature within 60 ft. to make a Strength save or be pulled within 5 feet of me. If it succeeds, I can pull myself to it instead",
+        },
+        
+    }
+});
+
+AddSubClass("devil hunter","dark knight", {
+    regExpSearch : /^(?=.*dark)(?=.*knight).*$/i,
+	subname : "Dark Knight",
+    source : ["HB", 0],
+    fullname : "Dark Knight",
+	features : {
+        "subclassfeature3" : {
+			name : "Devil Arm Master",
+			source : ["HB", 0],
+			minlevel : 3,
+			description : "\n   " + "Drawing and stowing these weapons no longer requires actions. See \"Notes\" page",
+            weaponProfs : [false, true],
+            additional : levels.map(function (n) {
+                return n < 3 ? "" : (n < 5 ? 2 : n < 9 ? 3 : n < 13 ? 4 : n < 17 ? 5 : 6) + " Devil Arms per long rest"
+            }),
+        "devil arms" : {
+            name : "Devil Arms",
+            source : ["HB", 0],
+            description : " Highest attack bonus is shared by all Devil Arms. When I hit with two Devil Arms in the same turn, I add my Distortion Die to the damage of the second.",
+        },
+            autoSelectExtrachoices : [{
+                extrachoice : "devil arms"
+            }],
+        },
+        "subclassfeature3.1" : {
+            name : "Style Change",
+            source : ["HB", 0],
+            minlevel : 3,
+            description : "\n   " + "I have four styles of combat. After I expend all uses, I can use 1 style point to change.",
+            usages : "Charisma modifier per ",
+            usagescalc : "event.value = Math.max(1, What('Cha Mod'));",
+			recovery : "long rest",
+            "trickster" : {
+                name : "Trickster",
+                extraname : "Style",
+                description : "\n   After I make a melee attack, no opportunity attacks against me from target. As a bonus action, gain both Dodge and Disengage, jump distance x2 and can run across any solid surface with no movement penalty. level 14: I can Dash as a bonus action, and opportunity attacks against me are made at disadvantage.",
+                action : ["bonus action", " (Trickster)"]
+            },
+            "swordmaster" : {
+                name : "Swordmaster",
+                extraname : "Style",
+                description : "\n   I have advantage on opportunity attacks. I can also reroll Distortion Die damage when I use Stinger and use either total. level 14: When I miss with a melee weapon attack, I can use my reaction to cause the creature to take necrotic damage equal to my Cha. mod. When I use Stinger, I can reroll any number of dice and choose which dice are used for damage."
+            },
+            "royal guard" : {
+                name : "Royal Guard",
+                extraname : "Style",
+                description : "\n   As a reaction, I can reduce damage I take by an amount equal to my Charisma modifier (minimum 1). If I spend a style point, I can further reduce it by twice my Constitution modifier. level 14: I can now use Royal Guard for free 1/turn, but not if I've already used my Reaction in that turn. Nonmagical B, P, S damage is reduced by half my Cha mod (minimum 1).",
+                action : ["reaction", " (Royal Guard)"]
+            },
+            "gunslinger" : {
+                name : "Gunslinger",
+                extraname : "Style",
+                description : "\n   No disadvantage on attacks with ranged weapons due to long range or melee range. If I hit with Charged Shot, if target willingly moves before the end of my next turn, they take necrotic damage equal to two rolls of my Distortion Die. level 14: Ranged weapon attacks I make ignore 1/2 and 3/4 cover. When target is affected by Gunslinger, they have disadv. on attacks against all except me."
+            },
+                autoSelectExtrachoices : [{
+                    extrachoice : "trickster"
+                }, {
+                    extrachoice : "swordmaster"
+                }, {
+                    extrachoice : "royal guard"
+                }, {
+                    extrachoice : "gunslinger"
+                }],
+            },
+            "subclassfeature6" : {
+                name : "Devil Trigger",
+                source : ["HB", 0],
+                minlevel : 6,
+                description : "\n   I can pull my Devil Trigger and transform for 10 minutes or I am reduced to 0 hp or die. See \"Notes\" page.",
+                "devil trigger" : {
+                    name : "Devil Trigger",
+                    source : ["HB", 0],
+                    description : "\n   I gain Temporary Hitpoints equal to my level in this class, which go away after DT ends. I can use Charisma in place of Strength or Dexterity for melee weapons. 1/turn I can deal extra Necrotic damage equal to 1/2 my Devil Hunter level, when I hit with a weapon attack",
+                    usages : 2,
+                    recovery : "short rest",
+                    action : ["bonus action"]
+                },
+                autoSelectExtrachoices : [{
+                    extrachoice : "devil trigger"
+                }],
+            },
+            "subclassfeature11" : {
+                name : "Sin Devil Trigger",
+                source : ["HB", 0],
+                minlevel : 11,
+                description : "\n   I use one use of Devil Trigger to enter Sin Devil Trigger. See \"Notes\" page.",
+                "sin devil trigger" : {
+                    name : "Sin Devil Trigger",
+                    source : ["HB", 0],
+                    description : "\n   I gain all Devil Trigger benefits with the following changes/additions. I gain a 60 ft. flying speed. The extra necrotic damage increases to my devil hunter level. When I pop my devil trigger, and as a bonus action on each of my turns, I can make an extra attack if I take the attack action.",
+                    usages : 1,
+                    recovery : "long rest",
+                    action : ["bonus action"]
+                },
+                autoSelectExtrachoices : [{
+                    extrachoice : "sin devil trigger"
+                }],
+            },
+            "subclassfeature14" : {
+                name : "Enhanced Style Change",
+                source : ["HB", 0],
+                minlevel : 14,
+            },
+            "subclassfeature18" : {
+                name : "Quadruple S",
+                source : ["HB", 0],
+                minlevel : 18,
+                description : "\n   When I hit a creature with two weapon attacks on the same turn, I can gain SDT until the end of my next turn, regardless of uses left.",
+                usages : "Charisma modifier per ",
+                usagescalc : "event.value = Math.max(1, What('Cha Mod'));",
+                recovery : "long rest",
+            }
+        }
+    });
+
+AddSubClass("devil hunter","dark slayer", {
+    regExpSearch : /^(?=.*dark)(?=.*slayer).*$/i,
+    subname : "Dark Slayer",
+    source : ["HB", 0],
+    fullname : "Dark Slayer",
+    features : {
+		"subclassfeature3" : {
+			name : "Fiendish Vanguard",
+			source : ["HB", 0],
+			minlevel : 3,
+			description : desc([
+				"I add my Charisma modifier to initiative rolls"
+			]),
+			addMod : { type : "skill", field : "Init", mod : "max(Cha|0)", text : "I can add my Charisma modifier to initiative rolls." }
+		},
+        "subclassfeature3.1" : {
+            name : "Summoned Swords",
+            source : ["HB", 0],
+            minlevel : 3,
+            description : "\n   " + "This is a ranged spell attack that benefits from Charged Shot",
+			weaponOptions : [{
+				regExpSearch : /^(?=.*(summoned))(?=.*swords).*$/i,
+				name : "Summoned Swords",
+				source : [["HB", 0]],
+				ability : 2,
+				type : "Spell",
+				damage : [1, 4, "force"],
+				range : "30 ft",
+				description : "Can replace weapon attack; No disadv. within 5 ft.; after hit, 1 style point teleport within 5 ft.",
+				abilitytodamage : true,
+			}],
+            weaponsAdd : ["Summoned Swords"],
+        },
+        "subclassfeature6" : {
+            name : "Devil Trigger",
+            source : ["HB", 0],
+            minlevel : 6,
+            description : "\n   Gain temp hp equal to devil hunter level until Devil Trigger ends; lasts 10 mins. When I used Summoned Swords in my attack action, I can make an extra summoned swords attack as a bonus action. I can use Summoned Sword Techniques. Stops if I hit 0 hitpoints or die",
+            usages : 2,
+            recovery : "short rest",
+            action : ["bonus action"]
+        },
+		"subclassfeature6.1" : {
+			name : "Summoned Sword Techniques",
+			source : ["HB", 0],
+			minlevel : 6,
+			description : "\n   " + 'Use the "Choose Feature" button above to add a Technique to the third page',
+			additional : levels.map(function (n) {
+				return n < 6 ? "" : (n < 11 ? 1 : n < 14 ? 2 : n < 18 ? 3 : 4) + " known";
+			}),
+			extraname : "Summoned Sword Technique",
+			extrachoices : ["Blistering Swords", "Heavy Rain Swords", "Spiral Swords", "Storm Swords"],
+			extraTimes : levels.map(function (n) {
+				return n < 6 ? 0 : n < 11 ? 1 : n < 14 ? 2 : n < 18 ? 3 : 4;
+			}),
+            "blistering swords" : {
+				name : "Blistering Swords",
+                extraname : "Summoned Sword Technique",
+                source : ["HB", 0],
+                description : " [1 style point]" + desc("After taking the Attack action with at least one Summoned Sword, I can make 2 Summoned Sword attacks as a bonus action"),
+                action : ["bonus action", " (after Attack action)"]
+			},
+			"heavy rain swords" : {
+				name : "Heavy Rain Swords",
+                extraname : "Summoned Sword Technique",
+                source : ["HB", 0],
+                description : " [2 style points]" + desc("I choose a point within 60 ft. Each creature within 5 feet of that point makes a Dex Save or take force damage equal to 2 rolls of my Distortion Die. 3 rolls at 11th level, 4 rolls at 17th level."),
+                action : ["action"]
+			},
+			"spiral swords" : {
+				name : "Spiral Swords",
+                extraname : "Summoned Sword Technique",
+                source : ["HB", 0],
+                description : " [1 style point]" + desc("I surround myself with 10 Summoned Swords. Any creature starting its turn within 5 ft. of me makes a Dex Save, or take Summoned Sword damage. Succeed or fail, 1 sword is spent. Lasts until all are gone, or bonus action dismiss."),
+                action : ["bonus action"]
+			},
+			"storm swords" : {
+				name : "Storm Swords",
+                extraname : "Summoned Sword Technique",
+                source : ["HB", 0],
+                description : " [2 style points]" + desc("I can surround a target within 30 ft with spinning swords until the end of my next turn. If target willingly moves, it takes force damage equal to 3 rolls of my Distortion Die. 4 rolls at 11th level, 5 rolls at 17th level."),
+                action : ["bonus action", " (after Attack action)"]
+            },
+        },
+        "subclassfeature11" : {
+            name : "Sin Devil Trigger",
+            source : ["HB", 0],
+            minlevel : 11,
+            description : "\n   I use one use of Devil Trigger to enter Sin Devil Trigger. See \"Notes\" page.",
+            "sin devil trigger" : {
+                name : "Sin Devil Trigger",
+                source : ["HB", 0],
+                description : "\n   I gain all Devil Trigger benefits with the following changes/additions. I gain a 60 ft. flying speed. Melee weapon attacks have 30 ft. reach, ignore 1/2 and 3/4 cover, and target of attacks take Cha. mod force damage (min 1). Summoned Sword Techniques add my Cha mod to damage.",
+                usages : 1,
+                recovery : "long rest",
+                action : ["bonus action"]
+            },
+            autoSelectExtrachoices : [{
+                extrachoice : "sin devil trigger"
+            }],
+        },
+        "subclassfeature14" : {
+            name : "Concentration",
+            source : ["HB", 0],
+            minlevel : 14,
+            description : "\n   When I take the Dodge action, I can use a bonus action to regain up to 1/2 my total style points.",
+            usages : "Charisma modifier per ",
+            usagescalc : "event.value = Math.max(1, What('Cha Mod'));",
+            recovery : "long rest",
+            action : ["bonus action", " (after Dodge action)"],
+        },
+        "subclassfeature14" : {
+            name : "Judgement Cut End",
+            source : ["HB", 0],
+            minlevel : 14,
+            description : "\n   While in Devil Trigger, when I use Concentration, I can forgo the benefits, and use Judgement Cut End. I make a melee weapon attack towards up to 5 creatures within 30 ft. of me. On a hit, a target takes 5d10 additional force damage. I can then teleport up to 30 ft."
+        },
+    }
+});
+
+ClassSubList["paladin-oath of vengeance"].regExpSearch = /^(((?=.*(vengeance|wrath|justice))((?=.*paladin)|((?=.*(exalted|sacred|holy|divine))(?=.*(knight|fighter|warrior|warlord|trooper)))))|(?=.*avenger)).*$/i;
